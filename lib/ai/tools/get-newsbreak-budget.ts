@@ -57,13 +57,13 @@ export const getNewsbreakBudget = ({ session }: GetNewsbreakBudgetProps) =>
         // Prepare account IDs for the request
         let accountIdsToQuery = input.accountIds || [];
         
-        // If no account IDs provided, try to use the accountId from user's configuration
+        // If no account IDs provided, try to use the accountIds from user's configuration
         if (accountIdsToQuery.length === 0) {
-          if (account.accountId) {
-            accountIdsToQuery = [account.accountId];
+          if (account.accountIds && account.accountIds.length > 0) {
+            accountIdsToQuery = account.accountIds;
           } else {
             return {
-              error: "No account IDs provided. Please either:\n1. Specify account IDs in your query, or\n2. Configure the Account ID in Ads Account Management",
+              error: "No account IDs provided. Please either:\n1. Specify account IDs in your query, or\n2. Configure Account IDs in Ads Account Management",
               setupUrl: "/settings/ads-accounts",
             };
           }

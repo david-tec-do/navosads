@@ -48,7 +48,7 @@ export async function GET(
 const updateSchema = z.object({
   tokenName: z.string().min(1).optional(),
   accessToken: z.string().min(1).optional(),
-  accountId: z.string().optional(),
+  accountIds: z.array(z.string()).optional(),
   accountEmail: z.string().email().optional().or(z.literal("")),
   tokenExpiresAt: z.string().datetime().optional().nullable(),
 });
@@ -72,7 +72,7 @@ export async function PATCH(
       userId: session.user.id,
       tokenName: validatedData.tokenName,
       accessToken: validatedData.accessToken,
-      accountId: validatedData.accountId,
+      accountIds: validatedData.accountIds,
       accountEmail: validatedData.accountEmail || undefined,
       tokenExpiresAt: validatedData.tokenExpiresAt
         ? new Date(validatedData.tokenExpiresAt)

@@ -202,7 +202,7 @@ export const adsAccountToken = pgTable("AdsAccountToken", {
   tokenIv: varchar("tokenIv", { length: 32 }).notNull(), // Initialization vector
 
   // Optional platform account info
-  accountId: varchar("accountId", { length: 128 }),
+  accountIds: jsonb("accountIds").$type<string[]>(), // Support multiple account IDs
   accountEmail: varchar("accountEmail", { length: 128 }),
 
   // Status management

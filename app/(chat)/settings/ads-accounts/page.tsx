@@ -40,7 +40,7 @@ type AdsAccount = {
   id: string;
   mediaId: string;
   tokenName: string;
-  accountId: string | null;
+  accountIds: string[] | null;
   accountEmail: string | null;
   status: "active" | "expired" | "invalid" | "revoked";
   tokenExpiresAt: string | null;
@@ -67,7 +67,7 @@ export default function AdsAccountsPage() {
     mediaId: "",
     tokenName: "",
     accessToken: "",
-    accountId: "",
+    accountIds: "",  // Comma-separated account IDs
     accountEmail: "",
   });
 
@@ -99,10 +99,24 @@ export default function AdsAccountsPage() {
 
   const handleAdd = async () => {
     try {
-      if (!formData.mediaId || !formData.tokenName || !formData.accessToken || !formData.accountId) {
+      if (!formData.mediaId || !formData.tokenName || !formData.accessToken || !formData.accountIds) {
         toast({
           type: "error",
-          description: "Please fill in all required fields (Platform, Account Name, Access Token, and Account ID)",
+          description: "Please fill in all required fields (Platform, Account Name, Access Token, and Account IDs)",
+        });
+        return;
+      }
+
+      // Parse comma-separated account IDs
+      const accountIdsArray = formData.accountIds
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id.length > 0);
+
+      if (accountIdsArray.length === 0) {
+        toast({
+          type: "error",
+          description: "Please provide at least one Account ID",
         });
         return;
       }
@@ -110,7 +124,10 @@ export default function AdsAccountsPage() {
       const response = await fetch("/api/ads-accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          accountIds: accountIdsArray,
+        }),
       });
 
       if (!response.ok) {
@@ -142,7 +159,14 @@ export default function AdsAccountsPage() {
       const updateData: any = {};
       if (formData.tokenName) updateData.tokenName = formData.tokenName;
       if (formData.accessToken) updateData.accessToken = formData.accessToken;
-      if (formData.accountId) updateData.accountId = formData.accountId;
+      if (formData.accountIds) {
+        // Parse comma-separated account IDs
+        const accountIdsArray = formData.accountIds
+          .split(',')
+          .map(id => id.trim())
+          .filter(id => id.length > 0);
+        updateData.accountIds = accountIdsArray;
+      }
       if (formData.accountEmail) updateData.accountEmail = formData.accountEmail;
 
       const response = await fetch(`/api/ads-accounts/${selectedAccount.id}`, {
@@ -209,7 +233,7 @@ export default function AdsAccountsPage() {
       mediaId: "",
       tokenName: "",
       accessToken: "",
-      accountId: "",
+      accountIds: "",
       accountEmail: "",
     });
   };
@@ -220,7 +244,7 @@ export default function AdsAccountsPage() {
       mediaId: account.mediaId,
       tokenName: account.tokenName,
       accessToken: "",
-      accountId: account.accountId || "",
+      accountIds: account.accountIds ? account.accountIds.join(', ') : "",
       accountEmail: account.accountEmail || "",
     });
     setShowEditDialog(true);
@@ -371,12 +395,16 @@ export default function AdsAccountsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-2 text-sm">
-                    {account.accountId && (
+                    {account.accountIds && account.accountIds.length > 0 && (
                       <div>
-                        <span className="text-muted-foreground">Account ID: </span>
-                        <code className="rounded bg-muted px-1 py-0.5 text-xs">
-                          {account.accountId}
-                        </code>
+                        <span className="text-muted-foreground">Account IDs: </span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {account.accountIds.map((id, index) => (
+                            <code key={index} className="rounded bg-muted px-1 py-0.5 text-xs">
+                              {id}
+                            </code>
+                          ))}
+                        </div>
                       </div>
                     )}
                     {account.accountEmail && (
@@ -460,17 +488,17 @@ export default function AdsAccountsPage() {
               </p>
             </div>
             <div>
-              <Label htmlFor="accountId">Account ID *</Label>
+              <Label htmlFor="accountIds">Account IDs *</Label>
               <Input
-                id="accountId"
-                placeholder="e.g., 1981942764328771586"
-                value={formData.accountId}
+                id="accountIds"
+                placeholder="e.g., 1981942764328771586, 9876543210123456789"
+                value={formData.accountIds}
                 onChange={(e) =>
-                  setFormData({ ...formData, accountId: e.target.value })
+                  setFormData({ ...formData, accountIds: e.target.value })
                 }
               />
               <p className="mt-1 text-muted-foreground text-xs">
-                ℹ️ Required for budget queries. Find this in your NewsBreak dashboard.
+                ℹ️ Required for budget queries. Enter one or more account IDs separated by commas.
               </p>
             </div>
             <div>
@@ -528,17 +556,17 @@ export default function AdsAccountsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-accountId">Account ID *</Label>
+              <Label htmlFor="edit-accountIds">Account IDs *</Label>
               <Input
-                id="edit-accountId"
-                placeholder="e.g., 1981942764328771586"
-                value={formData.accountId}
+                id="edit-accountIds"
+                placeholder="e.g., 1981942764328771586, 9876543210123456789"
+                value={formData.accountIds}
                 onChange={(e) =>
-                  setFormData({ ...formData, accountId: e.target.value })
+                  setFormData({ ...formData, accountIds: e.target.value })
                 }
               />
               <p className="mt-1 text-muted-foreground text-xs">
-                ℹ️ Required for budget queries
+                ℹ️ Required for budget queries. Comma-separated for multiple IDs.
               </p>
             </div>
             <div>

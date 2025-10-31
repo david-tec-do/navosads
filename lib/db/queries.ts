@@ -625,7 +625,7 @@ export async function getAdsAccountsByUserId(userId: string) {
         id: adsAccountToken.id,
         mediaId: adsAccountToken.mediaId,
         tokenName: adsAccountToken.tokenName,
-        accountId: adsAccountToken.accountId,
+        accountIds: adsAccountToken.accountIds,
         accountEmail: adsAccountToken.accountEmail,
         status: adsAccountToken.status,
         tokenExpiresAt: adsAccountToken.tokenExpiresAt,
@@ -656,7 +656,7 @@ export async function getAdsAccountById(accountId: string, userId: string) {
         id: adsAccountToken.id,
         mediaId: adsAccountToken.mediaId,
         tokenName: adsAccountToken.tokenName,
-        accountId: adsAccountToken.accountId,
+        accountIds: adsAccountToken.accountIds,
         accountEmail: adsAccountToken.accountEmail,
         status: adsAccountToken.status,
         tokenExpiresAt: adsAccountToken.tokenExpiresAt,
@@ -688,7 +688,7 @@ export async function createAdsAccount({
   mediaId,
   tokenName,
   accessToken,
-  accountId,
+  accountIds,
   accountEmail,
   tokenExpiresAt,
 }: {
@@ -696,7 +696,7 @@ export async function createAdsAccount({
   mediaId: string;
   tokenName: string;
   accessToken: string;
-  accountId?: string;
+  accountIds?: string[];
   accountEmail?: string;
   tokenExpiresAt?: Date;
 }) {
@@ -711,7 +711,7 @@ export async function createAdsAccount({
         tokenName,
         encryptedAccessToken: encryptedData,
         tokenIv: iv,
-        accountId,
+        accountIds: accountIds || null,
         accountEmail,
         tokenExpiresAt,
         status: "active",
@@ -737,7 +737,7 @@ export async function updateAdsAccount({
   userId,
   tokenName,
   accessToken,
-  accountId: platformAccountId,
+  accountIds,
   accountEmail,
   tokenExpiresAt,
 }: {
@@ -745,7 +745,7 @@ export async function updateAdsAccount({
   userId: string;
   tokenName?: string;
   accessToken?: string;
-  accountId?: string;
+  accountIds?: string[];
   accountEmail?: string;
   tokenExpiresAt?: Date;
 }) {
@@ -761,7 +761,7 @@ export async function updateAdsAccount({
     };
 
     if (tokenName !== undefined) updateData.tokenName = tokenName;
-    if (platformAccountId !== undefined) updateData.accountId = platformAccountId;
+    if (accountIds !== undefined) updateData.accountIds = accountIds;
     if (accountEmail !== undefined) updateData.accountEmail = accountEmail;
     if (tokenExpiresAt !== undefined) updateData.tokenExpiresAt = tokenExpiresAt;
 

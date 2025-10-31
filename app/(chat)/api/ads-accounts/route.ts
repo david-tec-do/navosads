@@ -48,7 +48,7 @@ const createSchema = z.object({
   mediaId: z.string().min(1, "Media platform is required"),
   tokenName: z.string().min(1, "Account name is required"),
   accessToken: z.string().min(1, "Access token is required"),
-  accountId: z.string().optional(),
+  accountIds: z.array(z.string()).min(1, "At least one Account ID is required"),
   accountEmail: z.string().email().optional().or(z.literal("")),
   tokenExpiresAt: z.string().datetime().optional(),
 });
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       mediaId: validatedData.mediaId,
       tokenName: validatedData.tokenName,
       accessToken: validatedData.accessToken,
-      accountId: validatedData.accountId,
+      accountIds: validatedData.accountIds,
       accountEmail: validatedData.accountEmail || undefined,
       tokenExpiresAt: validatedData.tokenExpiresAt
         ? new Date(validatedData.tokenExpiresAt)
