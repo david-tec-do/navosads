@@ -171,3 +171,57 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+// Media Platform Table (System-defined ad platforms)
+export const media = pgTable("Media", {
+  id: varchar("id", { length: 32 }).primaryKey().notNull(), // e.g., "newsbreak"
+  displayName: varchar("displayName", { length: 64 }).notNull(), // e.g., "NewsBreak"
+  description: text("description"),
+  logoUrl: text("logoUrl"),
+  documentationUrl: text("documentationUrl"),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type Media = InferSelectModel<typeof media>;
+
+// Ads Account Token Table (User's ad platform tokens)
+export const adsAccountToken = pgTable("AdsAccountToken", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  mediaId: varchar("mediaId", { length: 32 })
+    .notNull()
+    .references(() => media.id),
+
+  // Token information
+  tokenName: varchar("tokenName", { length: 128 }).notNull(), // User-defined name
+  encryptedAccessToken: text("encryptedAccessToken").notNull(), // AES encrypted
+  tokenIv: varchar("tokenIv", { length: 32 }).notNull(), // Initialization vector
+
+  // Optional platform account info
+  accountId: varchar("accountId", { length: 128 }),
+  accountEmail: varchar("accountEmail", { length: 128 }),
+
+  // Status management
+  status: varchar("status", {
+    enum: ["active", "expired", "invalid", "revoked"],
+    length: 16,
+  })
+    .notNull()
+    .default("active"),
+
+  // Token metadata
+  tokenExpiresAt: timestamp("tokenExpiresAt"),
+  lastValidatedAt: timestamp("lastValidatedAt"),
+  lastUsedAt: timestamp("lastUsedAt"),
+  lastErrorMessage: text("lastErrorMessage"),
+
+  // Audit fields
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type AdsAccountToken = InferSelectModel<typeof adsAccountToken>;

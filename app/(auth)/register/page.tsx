@@ -39,7 +39,12 @@ export default function Page() {
 
       setIsSuccessful(true);
       updateSession();
-      router.refresh();
+      
+      // Get redirect URL from query params or default to home
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectUrl = searchParams.get("redirectUrl") || "/";
+      
+      router.push(redirectUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status]);

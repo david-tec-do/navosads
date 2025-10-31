@@ -20,10 +20,12 @@ import { ChatSDKError } from "../errors";
 import type { AppUsage } from "../usage";
 import { generateUUID } from "../utils";
 import {
+  adsAccountToken,
   type Chat,
   chat,
   type DBMessage,
   document,
+  media,
   message,
   type Suggestion,
   stream,
@@ -33,6 +35,7 @@ import {
   vote,
 } from "./schema";
 import { generateHashedPassword } from "./utils";
+import { encryptTokenForStorage, decryptTokenFromStorage } from "./encryption";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -588,6 +591,332 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get stream ids by chat id"
+    );
+  }
+}
+
+// ==================== Ads Account Token Management ====================
+
+/**
+ * Get all available media platforms
+ */
+export async function getAllMedia() {
+  try {
+    return await db
+      .select()
+      .from(media)
+      .where(eq(media.isActive, true))
+      .orderBy(asc(media.displayName));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to fetch media platforms"
+    );
+  }
+}
+
+/**
+ * Get all ads accounts for a user (without decrypted tokens)
+ */
+export async function getAdsAccountsByUserId(userId: string) {
+  try {
+    return await db
+      .select({
+        id: adsAccountToken.id,
+        mediaId: adsAccountToken.mediaId,
+        tokenName: adsAccountToken.tokenName,
+        accountId: adsAccountToken.accountId,
+        accountEmail: adsAccountToken.accountEmail,
+        status: adsAccountToken.status,
+        tokenExpiresAt: adsAccountToken.tokenExpiresAt,
+        lastValidatedAt: adsAccountToken.lastValidatedAt,
+        lastUsedAt: adsAccountToken.lastUsedAt,
+        lastErrorMessage: adsAccountToken.lastErrorMessage,
+        createdAt: adsAccountToken.createdAt,
+        updatedAt: adsAccountToken.updatedAt,
+      })
+      .from(adsAccountToken)
+      .where(eq(adsAccountToken.userId, userId))
+      .orderBy(desc(adsAccountToken.createdAt));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to fetch ads accounts"
+    );
+  }
+}
+
+/**
+ * Get a single ads account by ID (with ownership check)
+ */
+export async function getAdsAccountById(accountId: string, userId: string) {
+  try {
+    const [account] = await db
+      .select({
+        id: adsAccountToken.id,
+        mediaId: adsAccountToken.mediaId,
+        tokenName: adsAccountToken.tokenName,
+        accountId: adsAccountToken.accountId,
+        accountEmail: adsAccountToken.accountEmail,
+        status: adsAccountToken.status,
+        tokenExpiresAt: adsAccountToken.tokenExpiresAt,
+        lastValidatedAt: adsAccountToken.lastValidatedAt,
+        lastUsedAt: adsAccountToken.lastUsedAt,
+        lastErrorMessage: adsAccountToken.lastErrorMessage,
+        createdAt: adsAccountToken.createdAt,
+        updatedAt: adsAccountToken.updatedAt,
+      })
+      .from(adsAccountToken)
+      .where(
+        and(eq(adsAccountToken.id, accountId), eq(adsAccountToken.userId, userId))
+      );
+
+    return account || null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to fetch ads account"
+    );
+  }
+}
+
+/**
+ * Create a new ads account with encrypted token
+ */
+export async function createAdsAccount({
+  userId,
+  mediaId,
+  tokenName,
+  accessToken,
+  accountId,
+  accountEmail,
+  tokenExpiresAt,
+}: {
+  userId: string;
+  mediaId: string;
+  tokenName: string;
+  accessToken: string;
+  accountId?: string;
+  accountEmail?: string;
+  tokenExpiresAt?: Date;
+}) {
+  try {
+    const { encryptedData, iv } = encryptTokenForStorage(accessToken);
+
+    const [newAccount] = await db
+      .insert(adsAccountToken)
+      .values({
+        userId,
+        mediaId,
+        tokenName,
+        encryptedAccessToken: encryptedData,
+        tokenIv: iv,
+        accountId,
+        accountEmail,
+        tokenExpiresAt,
+        status: "active",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    return newAccount;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to create ads account"
+    );
+  }
+}
+
+/**
+ * Update ads account information
+ */
+export async function updateAdsAccount({
+  accountId,
+  userId,
+  tokenName,
+  accessToken,
+  accountId: platformAccountId,
+  accountEmail,
+  tokenExpiresAt,
+}: {
+  accountId: string;
+  userId: string;
+  tokenName?: string;
+  accessToken?: string;
+  accountId?: string;
+  accountEmail?: string;
+  tokenExpiresAt?: Date;
+}) {
+  try {
+    // Verify ownership
+    const existing = await getAdsAccountById(accountId, userId);
+    if (!existing) {
+      throw new ChatSDKError("not_found:database", "Ads account not found");
+    }
+
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (tokenName !== undefined) updateData.tokenName = tokenName;
+    if (platformAccountId !== undefined) updateData.accountId = platformAccountId;
+    if (accountEmail !== undefined) updateData.accountEmail = accountEmail;
+    if (tokenExpiresAt !== undefined) updateData.tokenExpiresAt = tokenExpiresAt;
+
+    // If updating token, encrypt it
+    if (accessToken) {
+      const { encryptedData, iv } = encryptTokenForStorage(accessToken);
+      updateData.encryptedAccessToken = encryptedData;
+      updateData.tokenIv = iv;
+      updateData.status = "active";
+    }
+
+    const [updated] = await db
+      .update(adsAccountToken)
+      .set(updateData)
+      .where(eq(adsAccountToken.id, accountId))
+      .returning();
+
+    return updated;
+  } catch (_error) {
+    if (_error instanceof ChatSDKError) throw _error;
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update ads account"
+    );
+  }
+}
+
+/**
+ * Get decrypted access token (only when needed)
+ */
+export async function getDecryptedAccessToken(
+  accountId: string,
+  userId: string
+): Promise<string> {
+  try {
+    const [account] = await db
+      .select()
+      .from(adsAccountToken)
+      .where(
+        and(eq(adsAccountToken.id, accountId), eq(adsAccountToken.userId, userId))
+      );
+
+    if (!account) {
+      throw new ChatSDKError("not_found:database", "Ads account not found");
+    }
+
+    if (account.status !== "active") {
+      throw new ChatSDKError(
+        "forbidden:ads_account",
+        `Account status is ${account.status}`
+      );
+    }
+
+    // Check if token is expired
+    if (account.tokenExpiresAt && account.tokenExpiresAt < new Date()) {
+      await db
+        .update(adsAccountToken)
+        .set({ status: "expired", updatedAt: new Date() })
+        .where(eq(adsAccountToken.id, accountId));
+
+      throw new ChatSDKError("forbidden:ads_account", "Token expired");
+    }
+
+    // Decrypt token
+    const decryptedToken = decryptTokenFromStorage(
+      account.encryptedAccessToken,
+      account.tokenIv
+    );
+
+    // Update last used timestamp
+    await db
+      .update(adsAccountToken)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(adsAccountToken.id, accountId));
+
+    return decryptedToken;
+  } catch (_error) {
+    if (_error instanceof ChatSDKError) throw _error;
+
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to decrypt access token"
+    );
+  }
+}
+
+/**
+ * Update token status and error message
+ */
+export async function updateAdsAccountStatus({
+  accountId,
+  userId,
+  status,
+  errorMessage,
+}: {
+  accountId: string;
+  userId: string;
+  status: "active" | "expired" | "invalid" | "revoked";
+  errorMessage?: string;
+}) {
+  try {
+    // Verify ownership
+    const existing = await getAdsAccountById(accountId, userId);
+    if (!existing) {
+      throw new ChatSDKError("not_found:database", "Ads account not found");
+    }
+
+    await db
+      .update(adsAccountToken)
+      .set({
+        status,
+        lastErrorMessage: errorMessage || null,
+        lastValidatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(adsAccountToken.id, accountId));
+
+    return { success: true };
+  } catch (_error) {
+    if (_error instanceof ChatSDKError) throw _error;
+
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update ads account status"
+    );
+  }
+}
+
+/**
+ * Delete (revoke) an ads account
+ */
+export async function deleteAdsAccount(accountId: string, userId: string) {
+  try {
+    // Verify ownership
+    const existing = await getAdsAccountById(accountId, userId);
+    if (!existing) {
+      throw new ChatSDKError("not_found:database", "Ads account not found");
+    }
+
+    // Soft delete: mark as revoked
+    await db
+      .update(adsAccountToken)
+      .set({
+        status: "revoked",
+        updatedAt: new Date(),
+      })
+      .where(eq(adsAccountToken.id, accountId));
+
+    return { success: true };
+  } catch (_error) {
+    if (_error instanceof ChatSDKError) throw _error;
+
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to delete ads account"
     );
   }
 }
