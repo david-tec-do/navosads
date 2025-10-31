@@ -23,13 +23,17 @@ export const Response = memo(
     const router = useRouter();
 
     const CustomLink = useCallback(
-      ({ href, ...anchorProps }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
+      ({ href, className, ...anchorProps }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
         // Handle relative paths with client-side navigation
         if (href && href.startsWith("/")) {
           return (
             <a
               {...anchorProps}
               href={href}
+              className={cn(
+                "text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300",
+                className
+              )}
               onClick={(e) => {
                 e.preventDefault();
                 router.push(href);
@@ -38,7 +42,16 @@ export const Response = memo(
           );
         }
         // Handle external links normally
-        return <a {...anchorProps} href={href} />;
+        return (
+          <a
+            {...anchorProps}
+            href={href}
+            className={cn(
+              "text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300",
+              className
+            )}
+          />
+        );
       },
       [router]
     );
