@@ -55,7 +55,19 @@ export const getNewsbreakBudget = ({ session }: GetNewsbreakBudgetProps) =>
         const accessToken = await getDecryptedAccessToken(account.id, userId);
 
         // Prepare account IDs for the request
-        const accountIdsToQuery = input.accountIds || [];
+        let accountIdsToQuery = input.accountIds || [];
+        
+        // If no account IDs provided, try to use the accountId from user's configuration
+        if (accountIdsToQuery.length === 0) {
+          if (account.accountId) {
+            accountIdsToQuery = [account.accountId];
+          } else {
+            return {
+              error: "No account IDs provided. Please either:\n1. Specify account IDs in your query, or\n2. Configure the Account ID in Ads Account Management",
+              setupUrl: "/settings/ads-accounts",
+            };
+          }
+        }
         
         if (accountIdsToQuery.length > 500) {
           return {

@@ -99,10 +99,10 @@ export default function AdsAccountsPage() {
 
   const handleAdd = async () => {
     try {
-      if (!formData.mediaId || !formData.tokenName || !formData.accessToken) {
+      if (!formData.mediaId || !formData.tokenName || !formData.accessToken || !formData.accountId) {
         toast({
           type: "error",
-          description: "Please fill in all required fields",
+          description: "Please fill in all required fields (Platform, Account Name, Access Token, and Account ID)",
         });
         return;
       }
@@ -371,6 +371,14 @@ export default function AdsAccountsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-2 text-sm">
+                    {account.accountId && (
+                      <div>
+                        <span className="text-muted-foreground">Account ID: </span>
+                        <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                          {account.accountId}
+                        </code>
+                      </div>
+                    )}
                     {account.accountEmail && (
                       <div>
                         <span className="text-muted-foreground">Email: </span>
@@ -452,6 +460,20 @@ export default function AdsAccountsPage() {
               </p>
             </div>
             <div>
+              <Label htmlFor="accountId">Account ID *</Label>
+              <Input
+                id="accountId"
+                placeholder="e.g., 1981942764328771586"
+                value={formData.accountId}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountId: e.target.value })
+                }
+              />
+              <p className="mt-1 text-muted-foreground text-xs">
+                ℹ️ Required for budget queries. Find this in your NewsBreak dashboard.
+              </p>
+            </div>
+            <div>
               <Label htmlFor="accountEmail">Account Email (Optional)</Label>
               <Input
                 id="accountEmail"
@@ -506,7 +528,21 @@ export default function AdsAccountsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-accountEmail">Account Email</Label>
+              <Label htmlFor="edit-accountId">Account ID *</Label>
+              <Input
+                id="edit-accountId"
+                placeholder="e.g., 1981942764328771586"
+                value={formData.accountId}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountId: e.target.value })
+                }
+              />
+              <p className="mt-1 text-muted-foreground text-xs">
+                ℹ️ Required for budget queries
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="edit-accountEmail">Account Email (Optional)</Label>
               <Input
                 id="edit-accountEmail"
                 type="email"
