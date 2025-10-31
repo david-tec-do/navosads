@@ -27,6 +27,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { getNewsbreakBudget } from "@/lib/ai/tools/get-newsbreak-budget";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
+import { updateNewsbreakBudget } from "@/lib/ai/tools/update-newsbreak-budget";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -187,6 +188,7 @@ export async function POST(request: Request) {
               : [
                   "getWeather",
                   "getNewsbreakBudget",
+                  "updateNewsbreakBudget",
                   "createDocument",
                   "updateDocument",
                   "requestSuggestions",
@@ -195,6 +197,7 @@ export async function POST(request: Request) {
           tools: {
             getWeather,
             getNewsbreakBudget: getNewsbreakBudget({ session }),
+            updateNewsbreakBudget: updateNewsbreakBudget({ session }),
             createDocument: createDocument({ session, dataStream }),
             updateDocument: updateDocument({ session, dataStream }),
             requestSuggestions: requestSuggestions({
