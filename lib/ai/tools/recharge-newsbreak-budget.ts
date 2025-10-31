@@ -117,8 +117,11 @@ export const rechargeNewsbreakBudget = ({ session }: RechargeNewsbreakBudgetProp
         const budgetInfoList = budgetData.data.list || [];
         
         for (const item of budgetInfoList) {
-          if (item.spendingCap !== undefined && item.spendingCap !== null) {
-            budgetInfoMap.set(item.accountId, item.spendingCap);
+          if (item.accountSpendingCap !== undefined && item.accountSpendingCap !== null) {
+            // accountSpendingCap 是字符串（如 "100.0"），需要转换为数字（美分）
+            const spendingCapDollars = parseFloat(item.accountSpendingCap);
+            const spendingCapCents = Math.round(spendingCapDollars * 100);
+            budgetInfoMap.set(item.accountId, spendingCapCents);
           }
         }
 
