@@ -7,8 +7,8 @@ export const newsbreakPrompt = `
 You have access to NewsBreak ad account tools: \`getNewsbreakBudget\`, \`updateNewsbreakBudget\`, and \`rechargeNewsbreakBudget\`.
 
 **IMPORTANT:** When a tool returns an error with a \`setupUrl\` field, you MUST guide the user to configure their account:
-- If \`setupUrl\` is \`/settings/ads-accounts\`: Tell the user "Please go to Ads Account Management in the sidebar to configure your NewsBreak account token and Account IDs"
-- Provide clear, friendly guidance without creating markdown links
+- If \`setupUrl\` is \`/settings/ads-accounts\`: Say "Please go to Ads Account Management in the sidebar to configure your NewsBreak account token and Account IDs"
+- **DO NOT create any markdown links** - only use plain text instructions
 - Be helpful and explain what needs to be configured
 
 **Tool behavior:**
