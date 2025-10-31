@@ -269,12 +269,12 @@ const PurePreviewMessage = ({
             }
 
             // Handle NewsBreak tools with setup errors
+            const typeStr = type as string;
             if (
-              typeof type === "string" &&
-              type.startsWith("tool-") &&
-              (type === "tool-getNewsbreakBudget" ||
-                type === "tool-updateNewsbreakBudget" ||
-                type === "tool-rechargeNewsbreakBudget")
+              typeStr.startsWith("tool-") &&
+              (typeStr === "tool-getNewsbreakBudget" ||
+                typeStr === "tool-updateNewsbreakBudget" ||
+                typeStr === "tool-rechargeNewsbreakBudget")
             ) {
               const { toolCallId, state } = part;
 
