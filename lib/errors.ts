@@ -16,7 +16,8 @@ export type Surface =
   | "vote"
   | "document"
   | "suggestions"
-  | "activate_gateway";
+  | "activate_gateway"
+  | "ads_account";
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -33,6 +34,7 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   document: "response",
   suggestions: "response",
   activate_gateway: "response",
+  ads_account: "response",
 };
 
 export class ChatSDKError extends Error {
@@ -111,6 +113,13 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return "You need to sign in to view this document. Please sign in and try again.";
     case "bad_request:document":
       return "The request to create or update the document was invalid. Please check your input and try again.";
+
+    case "not_found:ads_account":
+      return "The requested ad account was not found. Please check the account ID and try again.";
+    case "forbidden:ads_account":
+      return "You don't have permission to access this ad account, or the account status prevents this operation.";
+    case "bad_request:ads_account":
+      return "The request to manage the ad account was invalid. Please check your input and try again.";
 
     default:
       return "Something went wrong. Please try again later.";
