@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AlertCircleIcon } from "lucide-react";
 
 interface NewsbreakSetupCardProps {
@@ -9,6 +9,14 @@ interface NewsbreakSetupCardProps {
 }
 
 export function NewsbreakSetupCard({ message, setupUrl }: NewsbreakSetupCardProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (setupUrl) {
+      router.push(setupUrl);
+    }
+  };
+
   return (
     <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-900 dark:bg-orange-950/50">
       <div className="flex items-start gap-3">
@@ -18,12 +26,13 @@ export function NewsbreakSetupCard({ message, setupUrl }: NewsbreakSetupCardProp
             {message || "Configuration Required"}
           </p>
           {setupUrl && (
-            <Link
-              href={setupUrl}
+            <button
+              onClick={handleClick}
               className="inline-flex items-center justify-center rounded-md bg-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:bg-orange-500 dark:hover:bg-orange-600"
+              type="button"
             >
               Go to Ads Account Management
-            </Link>
+            </button>
           )}
         </div>
       </div>
