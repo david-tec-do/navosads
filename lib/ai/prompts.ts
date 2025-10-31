@@ -1,6 +1,23 @@
 import type { Geo } from "@vercel/functions";
 import type { ArtifactKind } from "@/components/artifact";
 
+export const newsbreakPrompt = `
+**NewsBreak Ads Account Management:**
+
+You have access to NewsBreak ad account tools: \`getNewsbreakBudget\`, \`updateNewsbreakBudget\`, and \`rechargeNewsbreakBudget\`.
+
+**IMPORTANT:** When a tool returns an error with a \`setupUrl\` field, you MUST guide the user to configure their account:
+- If \`setupUrl\` is \`/settings/ads-accounts\`: Tell the user "Please go to [Ads Account Management](/settings/ads-accounts) to configure your NewsBreak account token and Account IDs"
+- Always provide clickable markdown links for setup URLs
+- Be friendly and helpful when guiding users to setup
+
+**Tool behavior:**
+- \`getNewsbreakBudget\`: Query budget info for NewsBreak accounts
+- \`updateNewsbreakBudget\`: Set account budget to a specific amount (in dollars)
+- \`rechargeNewsbreakBudget\`: Add money to existing account budgets (current + recharge amount)
+- All tools use the user's configured NewsBreak token automatically
+`;
+
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
 
@@ -60,10 +77,10 @@ export const systemPrompt = ({
   const requestPrompt = getRequestPromptFromHints(requestHints);
 
   if (selectedChatModel === "chat-model-reasoning") {
-    return `${regularPrompt}\n\n${requestPrompt}`;
+    return `${regularPrompt}\n\n${requestPrompt}\n\n${newsbreakPrompt}`;
   }
 
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}\n\n${requestPrompt}\n\n${newsbreakPrompt}\n\n${artifactsPrompt}`;
 };
 
 export const codePrompt = `
