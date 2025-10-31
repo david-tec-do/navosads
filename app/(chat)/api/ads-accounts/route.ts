@@ -32,7 +32,7 @@ export async function GET() {
     if (error instanceof ChatSDKError) {
       return NextResponse.json(
         { error: error.message },
-        { status: error.code === "not_found:database" ? 404 : 400 }
+        { status: error.statusCode }
       );
     }
 
