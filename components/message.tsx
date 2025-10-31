@@ -276,7 +276,7 @@ const PurePreviewMessage = ({
                 typeStr === "tool-updateNewsbreakBudget" ||
                 typeStr === "tool-rechargeNewsbreakBudget")
             ) {
-              const { toolCallId, state } = part;
+              const { toolCallId, state } = part as any;
 
               return (
                 <Tool defaultOpen={true} key={toolCallId}>
