@@ -276,33 +276,34 @@ const PurePreviewMessage = ({
                 typeStr === "tool-updateNewsbreakBudget" ||
                 typeStr === "tool-rechargeNewsbreakBudget")
             ) {
-              const { toolCallId, state } = part as any;
+              const toolPart = part as any;
+              const { toolCallId, state } = toolPart;
 
               return (
                 <Tool defaultOpen={true} key={toolCallId}>
                   <ToolHeader state={state} type={type as any} />
                   <ToolContent>
                     {state === "input-available" && (
-                      <ToolInput input={part.input} />
+                      <ToolInput input={toolPart.input} />
                     )}
                     {state === "output-available" && (
                       <ToolOutput
                         errorText={undefined}
                         output={
-                          part.output &&
-                          "error" in part.output &&
-                          "setupUrl" in part.output ? (
+                          toolPart.output &&
+                          "error" in toolPart.output &&
+                          "setupUrl" in toolPart.output ? (
                             <NewsbreakSetupCard
-                              message={String(part.output.error)}
-                              setupUrl={String(part.output.setupUrl)}
+                              message={String(toolPart.output.error)}
+                              setupUrl={String(toolPart.output.setupUrl)}
                             />
-                          ) : part.output && "error" in part.output ? (
+                          ) : toolPart.output && "error" in toolPart.output ? (
                             <div className="rounded border p-2 text-red-500">
-                              Error: {String(part.output.error)}
+                              Error: {String(toolPart.output.error)}
                             </div>
                           ) : (
                             <pre className="whitespace-pre-wrap rounded border p-2 text-sm">
-                              {JSON.stringify(part.output, null, 2)}
+                              {JSON.stringify(toolPart.output, null, 2)}
                             </pre>
                           )
                         }
