@@ -270,15 +270,17 @@ const PurePreviewMessage = ({
 
             // Handle NewsBreak tools with setup errors
             if (
-              type === "tool-getNewsbreakBudget" ||
-              type === "tool-updateNewsbreakBudget" ||
-              type === "tool-rechargeNewsbreakBudget"
+              typeof type === "string" &&
+              type.startsWith("tool-") &&
+              (type === "tool-getNewsbreakBudget" ||
+                type === "tool-updateNewsbreakBudget" ||
+                type === "tool-rechargeNewsbreakBudget")
             ) {
               const { toolCallId, state } = part;
 
               return (
                 <Tool defaultOpen={true} key={toolCallId}>
-                  <ToolHeader state={state} type={type} />
+                  <ToolHeader state={state} type={type as any} />
                   <ToolContent>
                     {state === "input-available" && (
                       <ToolInput input={part.input} />
