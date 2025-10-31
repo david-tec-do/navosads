@@ -21,6 +21,7 @@ import {
 import { SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
+import { NewsbreakSetupCard } from "./newsbreak-setup-card";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { Weather } from "./weather";
@@ -258,6 +259,49 @@ const PurePreviewMessage = ({
                               result={part.output}
                               type="request-suggestions"
                             />
+                          )
+                        }
+                      />
+                    )}
+                  </ToolContent>
+                </Tool>
+              );
+            }
+
+            // Handle NewsBreak tools with setup errors
+            if (
+              type === "tool-getNewsbreakBudget" ||
+              type === "tool-updateNewsbreakBudget" ||
+              type === "tool-rechargeNewsbreakBudget"
+            ) {
+              const { toolCallId, state } = part;
+
+              return (
+                <Tool defaultOpen={true} key={toolCallId}>
+                  <ToolHeader state={state} type={type} />
+                  <ToolContent>
+                    {state === "input-available" && (
+                      <ToolInput input={part.input} />
+                    )}
+                    {state === "output-available" && (
+                      <ToolOutput
+                        errorText={undefined}
+                        output={
+                          part.output &&
+                          "error" in part.output &&
+                          "setupUrl" in part.output ? (
+                            <NewsbreakSetupCard
+                              message={String(part.output.error)}
+                              setupUrl={String(part.output.setupUrl)}
+                            />
+                          ) : part.output && "error" in part.output ? (
+                            <div className="rounded border p-2 text-red-500">
+                              Error: {String(part.output.error)}
+                            </div>
+                          ) : (
+                            <pre className="whitespace-pre-wrap rounded border p-2 text-sm">
+                              {JSON.stringify(part.output, null, 2)}
+                            </pre>
                           )
                         }
                       />
