@@ -25,6 +25,7 @@ import { myProvider } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { getNewsbreakBudget } from "@/lib/ai/tools/get-newsbreak-budget";
+import { rechargeNewsbreakBudget } from "@/lib/ai/tools/recharge-newsbreak-budget";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { updateNewsbreakBudget } from "@/lib/ai/tools/update-newsbreak-budget";
@@ -189,6 +190,7 @@ export async function POST(request: Request) {
                   "getWeather",
                   "getNewsbreakBudget",
                   "updateNewsbreakBudget",
+                  "rechargeNewsbreakBudget",
                   "createDocument",
                   "updateDocument",
                   "requestSuggestions",
@@ -198,6 +200,7 @@ export async function POST(request: Request) {
             getWeather,
             getNewsbreakBudget: getNewsbreakBudget({ session }),
             updateNewsbreakBudget: updateNewsbreakBudget({ session }),
+            rechargeNewsbreakBudget: rechargeNewsbreakBudget({ session }),
             createDocument: createDocument({ session, dataStream }),
             updateDocument: updateDocument({ session, dataStream }),
             requestSuggestions: requestSuggestions({
