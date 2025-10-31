@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, Suspense } from "react";
+import Image from "next/image";
 
 import { AuthForm } from "@/components/auth-form";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { type LoginActionState, login } from "../actions";
 
-export default function Page() {
+function LoginForm() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -29,21 +31,21 @@ export default function Page() {
     if (state.status === "failed") {
       toast({
         type: "error",
-        description: "Invalid credentials!",
+        description: "Incorrect email or password. Please try again.",
       });
     } else if (state.status === "invalid_data") {
       toast({
         type: "error",
-        description: "Failed validating your submission!",
+        description: "Please enter a valid email and password.",
       });
     } else if (state.status === "success") {
       setIsSuccessful(true);
       updateSession();
-      
+
       // Get redirect URL from query params or default to home
       const searchParams = new URLSearchParams(window.location.search);
       const redirectUrl = searchParams.get("redirectUrl") || "/";
-      
+
       router.push(redirectUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -55,28 +57,70 @@ export default function Page() {
   };
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-xl dark:text-zinc-50">Sign In</h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            Use your email and password to sign in
-          </p>
+    <>
+      <div className="flex h-dvh w-screen items-start pt-12 md:pt-0 md:items-center justify-center relative">
+        <Image
+          src="/images/login/background.png"
+          alt="Background"
+          fill
+          className="object-cover z-0 dark:brightness-50 dark:contrast-125"
+          priority
+        />
+        <div className="w-full max-w-md mx-auto mt-10 p-8 bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg flex flex-col gap-12 border border-white/10 z-10 relative">
+          <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-9">
+            <h3 className="font-heading text-2xl font-semibold text-login-forground">
+              Sign In Navos
+            </h3>
+          </div>
+          <AuthForm action={handleSubmit} defaultEmail={email}>
+            <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+            <p className="text-center text-md text-gray-400 mt-4">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/register"
+                className="font-semibold text-primary hover:underline"
+              >
+                Sign up
+              </Link>
+              {" for free."}
+            </p>
+          </AuthForm>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
-          <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
-            {"Don't have an account? "}
-            <Link
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-              href="/register"
-            >
-              Sign up
-            </Link>
-            {" for free."}
-          </p>
-        </AuthForm>
+      </div>
+    </>
+  );
+}
+
+function LoginSkeleton() {
+  return (
+    <div className="flex h-dvh w-screen items-start pt-12 md:pt-0 md:items-center justify-center relative">
+      <div className="w-full max-w-md mx-auto mt-10 p-8 flex flex-col gap-12 z-10 relative">
+        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-9">
+          <Skeleton className="h-8 w-32" />
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <Skeleton className="h-10 w-full rounded-md mt-4" />
+          <div className="flex justify-between mt-4">
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoginSkeleton />}>
+      <LoginForm />
+    </Suspense>
   );
 }
