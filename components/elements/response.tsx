@@ -9,7 +9,9 @@ type ResponseProps = ComponentProps<typeof Streamdown>;
 
 export const Response = memo(
   ({ className, ...props }: ResponseProps) => {
-    const [defaultOrigin, setDefaultOrigin] = useState<string>("");
+    const [defaultOrigin, setDefaultOrigin] = useState<string | undefined>(
+      undefined
+    );
 
     useEffect(() => {
       if (typeof window !== "undefined") {
@@ -19,8 +21,10 @@ export const Response = memo(
 
     return (
       <Streamdown
-        allowedLinkPrefixes={["/"]}
-        defaultOrigin={defaultOrigin}
+        {...(defaultOrigin && {
+          allowedLinkPrefixes: ["/"],
+          defaultOrigin,
+        })}
         className={cn(
           "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_code]:whitespace-pre-wrap [&_code]:break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto",
           className
