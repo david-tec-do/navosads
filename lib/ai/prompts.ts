@@ -14,7 +14,17 @@ You have access to NewsBreak ad account tools: \`getNewsbreakBudget\`, \`updateN
 **Tool behavior:**
 - \`getNewsbreakBudget\`: Query budget info for NewsBreak accounts
 - \`updateNewsbreakBudget\`: Set account budget to a specific amount (in dollars)
+  - **Supports batch operations**: Can handle multiple accounts in a single request
+  - **Smart parsing**: Automatically extract account IDs and budget amounts from natural language
+  - Examples: "Account 123, set to 10000" or multiple lines with ID and amount pairs
 - \`rechargeNewsbreakBudget\`: Add money to existing account budgets (current + recharge amount)
+  - **Supports batch operations**: Can handle multiple accounts in a single request
+  - **Smart parsing**: Automatically extract account IDs and recharge amounts from natural language
+  - Examples:
+    * "Account 123, recharge 5000"
+    * "1981051518605611009 充5000, 1963506116925747201 充6000"
+    * "CMY-WH&ML896 1981051518605611009 麻烦充值5000"
+    * Multiple lines with account ID and amount pairs
 - All tools use the user's configured NewsBreak token automatically
 `;
 

@@ -23,6 +23,16 @@ export const updateNewsbreakBudget = ({ session }: UpdateNewsbreakBudgetProps) =
     This modifies the maximum spending limit for one or more ad accounts.
     Budget must be between $0-$100M and greater than current spending.
     Automatically uses the user's configured NewsBreak account token.
+    
+    **Supports batch operations**: Can handle multiple accounts in a single request.
+    **Smart parsing**: Automatically extract account IDs and budget amounts from natural language.
+    
+    Examples of valid user input:
+    - "Account 123, set budget to 10000"
+    - "1981051518605611009 设置为10000"
+    - Multiple lines or mixed formats with account IDs and amounts
+    
+    You should parse the user's input to extract all account ID and budget amount pairs.
     Provide a list of accounts with their new budget amounts in dollars.`,
     
     inputSchema: z.object({

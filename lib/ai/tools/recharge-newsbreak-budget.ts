@@ -24,6 +24,17 @@ export const rechargeNewsbreakBudget = ({ session }: RechargeNewsbreakBudgetProp
     adds the recharge amount to each account's current budget,
     and updates the accounts with the new budget total.
     Automatically uses the user's configured NewsBreak account token.
+    
+    **Supports batch operations**: Can handle multiple accounts in a single request.
+    **Smart parsing**: Automatically extract account IDs and recharge amounts from natural language.
+    
+    Examples of valid user input:
+    - "Account 123, recharge 5000"
+    - "1981051518605611009 充5000"
+    - "CMY-WH&ML896 1981051518605611009 麻烦充值5000"
+    - Multiple lines or mixed formats with account IDs and amounts
+    
+    You should parse the user's input to extract all account ID and recharge amount pairs.
     Provide a list of accounts with the amount to add to each account's budget.`,
     
     inputSchema: z.object({
