@@ -64,6 +64,13 @@
       "when": 1761920836916,
       "tag": "0008_foamy_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1761978319251,
+      "tag": "0010_invitation_code",
+      "breakpoints": true
     }
   ]
 }

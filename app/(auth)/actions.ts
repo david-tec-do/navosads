@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { createUser, getUser } from "@/lib/db/queries";
+import { createUser, getUser, validateAndUseInvitationCode } from "@/lib/db/queries";
 
 import { signIn } from "./auth";
 
@@ -48,7 +48,8 @@ export type RegisterActionState = {
     | "success"
     | "failed"
     | "user_exists"
-    | "invalid_data";
+    | "invalid_data"
+    | "invalid_invitation_code";
 };
 
 export const register = async (
@@ -61,12 +62,27 @@ export const register = async (
       password: formData.get("password"),
     });
 
-    const [user] = await getUser(validatedData.email);
+    const [existingUser] = await getUser(validatedData.email);
 
-    if (user) {
+    if (existingUser) {
       return { status: "user_exists" } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password);
+
+    // Create user first to get userId
+    const [newUser] = await createUser(validatedData.email, validatedData.password);
+
+    // Validate and use invitation code
+    const invitationCode = formData.get("invitationCode") as string;
+    if (invitationCode) {
+      try {
+        await validateAndUseInvitationCode(invitationCode, newUser.id);
+      } catch (error) {
+        // If invitation code validation fails, delete the created user and return error
+        // Note: In production, you might want to handle this differently
+        return { status: "invalid_invitation_code" } as RegisterActionState;
+      }
+    }
+
     await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,

@@ -225,3 +225,14 @@ export const adsAccountToken = pgTable("AdsAccountToken", {
 });
 
 export type AdsAccountToken = InferSelectModel<typeof adsAccountToken>;
+
+// Invitation Code Table
+export const invitationCode = pgTable("InvitationCode", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  code: varchar("code", { length: 32 }).notNull().unique(),
+  usedBy: uuid("usedBy").references(() => user.id),
+  usedAt: timestamp("usedAt"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type InvitationCode = InferSelectModel<typeof invitationCode>;

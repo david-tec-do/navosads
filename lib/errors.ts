@@ -17,7 +17,8 @@ export type Surface =
   | "document"
   | "suggestions"
   | "activate_gateway"
-  | "ads_account";
+  | "ads_account"
+  | "invitation_code";
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -35,6 +36,7 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   suggestions: "response",
   activate_gateway: "response",
   ads_account: "response",
+  invitation_code: "response",
 };
 
 export class ChatSDKError extends Error {
@@ -120,6 +122,9 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return "You don't have permission to access this ad account, or the account status prevents this operation.";
     case "bad_request:ads_account":
       return "The request to manage the ad account was invalid. Please check your input and try again.";
+
+    case "bad_request:invitation_code":
+      return "Invalid invitation code or code has already been used.";
 
     default:
       return "Something went wrong. Please try again later.";

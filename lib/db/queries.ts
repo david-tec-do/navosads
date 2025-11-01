@@ -25,6 +25,7 @@ import {
   chat,
   type DBMessage,
   document,
+  invitationCode,
   media,
   message,
   type Suggestion,
@@ -60,7 +61,7 @@ export async function createUser(email: string, password: string) {
   const hashedPassword = generateHashedPassword(password);
 
   try {
-    return await db.insert(user).values({ email, password: hashedPassword });
+    return await db.insert(user).values({ email, password: hashedPassword }).returning();
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to create user");
   }
@@ -917,6 +918,49 @@ export async function deleteAdsAccount(accountId: string, userId: string) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to delete ads account"
+    );
+  }
+}
+
+// Invitation Code Functions
+export async function validateAndUseInvitationCode(code: string, userId: string) {
+  try {
+    // Check if code exists and is unused
+    const [invCode] = await db
+      .select()
+      .from(invitationCode)
+      .where(eq(invitationCode.code, code));
+
+    if (!invCode) {
+      throw new ChatSDKError(
+        "bad_request:invitation_code",
+        "Invalid invitation code"
+      );
+    }
+
+    if (invCode.usedBy) {
+      throw new ChatSDKError(
+        "bad_request:invitation_code",
+        "Invitation code has already been used"
+      );
+    }
+
+    // Mark code as used
+    await db
+      .update(invitationCode)
+      .set({
+        usedBy: userId,
+        usedAt: new Date(),
+      })
+      .where(eq(invitationCode.code, code));
+
+    return { success: true };
+  } catch (_error) {
+    if (_error instanceof ChatSDKError) throw _error;
+    
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to validate invitation code"
     );
   }
 }

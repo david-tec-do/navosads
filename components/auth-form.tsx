@@ -8,12 +8,14 @@ export function AuthForm({
   action,
   children,
   defaultEmail = "",
+  showInvitationCode = false,
 }: {
   action: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
   >;
   children: React.ReactNode;
   defaultEmail?: string;
+  showInvitationCode?: boolean;
 }) {
   return (
     <Form action={action} className="flex flex-col gap-4 px-4">
@@ -47,6 +49,23 @@ export function AuthForm({
           required
         />
       </div>
+
+      {showInvitationCode && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="invitationCode" className="font-normal text-zinc-600 dark:text-zinc-400">
+            Invitation Code
+          </Label>
+
+          <Input
+            id="invitationCode"
+            name="invitationCode"
+            className="bg-muted text-md md:text-sm"
+            placeholder="Enter your invitation code"
+            autoComplete="off"
+            required
+          />
+        </div>
+      )}
 
       {children}
     </Form>
