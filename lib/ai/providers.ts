@@ -25,13 +25,13 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        // 使用标准的 xAI 模型标识符
-        "chat-model": gateway.languageModel("xai/grok-beta"),
+        // 使用 OpenAI GPT-5 模型（根据 AI Gateway 文档示例）
+        "chat-model": gateway.languageModel("openai/gpt-5"),
         "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-beta"),
+          model: gateway.languageModel("openai/gpt-5"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("xai/grok-beta"),
-        "artifact-model": gateway.languageModel("xai/grok-beta"),
+        "title-model": gateway.languageModel("openai/gpt-5"),
+        "artifact-model": gateway.languageModel("openai/gpt-5"),
       },
     });
