@@ -92,8 +92,21 @@ export async function POST(request: Request) {
 
   try {
     const json = await request.json();
+    console.log("Received request body:", JSON.stringify(json, null, 2));
     requestBody = postRequestBodySchema.parse(json);
-  } catch (_) {
+  } catch (error) {
+    console.error("Failed to parse request body:", error);
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      });
+      // 如果是 Zod 验证错误，记录详细的验证错误信息
+      if (error.name === "ZodError" && "issues" in error) {
+        console.error("Zod validation errors:", JSON.stringify((error as any).issues, null, 2));
+      }
+    }
     return new ChatSDKError("bad_request:api").toResponse();
   }
 
@@ -150,14 +163,25 @@ export async function POST(request: Request) {
     const messagesFromDb = await getMessagesByChatId({ id });
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
 
-    const { longitude, latitude, city, country } = geolocation(request);
-
-    const requestHints: RequestHints = {
-      longitude,
-      latitude,
-      city,
-      country,
+    // 安全地获取地理位置信息
+    let requestHints: RequestHints = {
+      longitude: undefined,
+      latitude: undefined,
+      city: undefined,
+      country: undefined,
     };
+    try {
+      const geo = geolocation(request);
+      requestHints = {
+        longitude: geo.longitude,
+        latitude: geo.latitude,
+        city: geo.city,
+        country: geo.country,
+      };
+    } catch (geoError) {
+      console.warn("Failed to get geolocation:", geoError);
+      // 使用默认值继续处理请求
+    }
 
     await saveMessages({
       messages: [
@@ -324,9 +348,16 @@ export async function POST(request: Request) {
     );
 
     console.error("Unhandled error in chat API:", error, { vercelId });
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      });
+    }
 
     if (isNetworkError) {
-    return new ChatSDKError("offline:chat").toResponse();
+      return new ChatSDKError("offline:chat").toResponse();
     }
 
     // 对于其他未处理的错误，返回通用的 API 错误
