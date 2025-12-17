@@ -345,6 +345,35 @@ export async function POST(request: Request) {
       return new ChatSDKError("bad_request:activate_gateway").toResponse();
     }
 
+    // 检查是否是 AI Gateway 模型未找到错误
+    if (
+      error instanceof Error &&
+      (error.name === "GatewayInternalServerError" ||
+        error.message?.includes("Not Found") ||
+        (error as any).statusCode === 404)
+    ) {
+      console.error("AI Gateway model not found error:", error);
+      // 检查是否是模型名称问题
+      const errorInfo = error as any;
+      if (errorInfo.responseBody) {
+        try {
+          const errorBody = JSON.parse(errorInfo.responseBody);
+          if (errorBody.error?.message === "Not Found") {
+            return new ChatSDKError(
+              "bad_request:api",
+              "AI model not found. Please check the model configuration."
+            ).toResponse();
+          }
+        } catch {
+          // 忽略解析错误
+        }
+      }
+      return new ChatSDKError(
+        "bad_request:api",
+        "AI service unavailable. Please try again later."
+      ).toResponse();
+    }
+
     // 检查是否是网络相关的错误
     const isNetworkError =
       error instanceof Error &&
