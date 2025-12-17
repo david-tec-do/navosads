@@ -326,7 +326,7 @@ export async function POST(request: Request) {
     console.error("Unhandled error in chat API:", error, { vercelId });
 
     if (isNetworkError) {
-      return new ChatSDKError("offline:chat").toResponse();
+    return new ChatSDKError("offline:chat").toResponse();
     }
 
     // 对于其他未处理的错误，返回通用的 API 错误
