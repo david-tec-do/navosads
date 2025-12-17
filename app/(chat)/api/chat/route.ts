@@ -23,8 +23,8 @@ import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
-import { getWeather } from "@/lib/ai/tools/get-weather";
 import { getNewsbreakBudget } from "@/lib/ai/tools/get-newsbreak-budget";
+import { getWeather } from "@/lib/ai/tools/get-weather";
 import { rechargeNewsbreakBudget } from "@/lib/ai/tools/recharge-newsbreak-budget";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
@@ -91,8 +91,14 @@ export async function POST(request: Request) {
   let requestBody: PostRequestBody;
 
   try {
+    const contentType = request.headers.get("content-type");
+    if (contentType && !contentType.includes("application/json")) {
+      console.error("Invalid Content-Type:", contentType);
+      return new ChatSDKError("bad_request:api").toResponse();
+    }
+
     const json = await request.json();
-    console.log("Received request body:", JSON.stringify(json, null, 2));
+    console.log("Request body received, keys:", Object.keys(json || {}));
     requestBody = postRequestBodySchema.parse(json);
   } catch (error) {
     console.error("Failed to parse request body:", error);
@@ -104,7 +110,10 @@ export async function POST(request: Request) {
       });
       // 如果是 Zod 验证错误，记录详细的验证错误信息
       if (error.name === "ZodError" && "issues" in error) {
-        console.error("Zod validation errors:", JSON.stringify((error as any).issues, null, 2));
+        console.error(
+          "Zod validation errors:",
+          JSON.stringify((error as any).issues, null, 2)
+        );
       }
     }
     return new ChatSDKError("bad_request:api").toResponse();
@@ -337,15 +346,15 @@ export async function POST(request: Request) {
     }
 
     // 检查是否是网络相关的错误
-    const isNetworkError = error instanceof Error && (
-      error.message?.includes("ECONNREFUSED") ||
-      error.message?.includes("ETIMEDOUT") ||
-      error.message?.includes("ENOTFOUND") ||
-      error.message?.includes("network") ||
-      error.message?.includes("timeout") ||
-      error.name === "NetworkError" ||
-      error.name === "TypeError" // fetch 失败通常是 TypeError
-    );
+    const isNetworkError =
+      error instanceof Error &&
+      (error.message?.includes("ECONNREFUSED") ||
+        error.message?.includes("ETIMEDOUT") ||
+        error.message?.includes("ENOTFOUND") ||
+        error.message?.includes("network") ||
+        error.message?.includes("timeout") ||
+        error.name === "NetworkError" ||
+        error.name === "TypeError"); // fetch 失败通常是 TypeError
 
     console.error("Unhandled error in chat API:", error, { vercelId });
     if (error instanceof Error) {

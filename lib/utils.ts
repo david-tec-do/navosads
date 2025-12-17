@@ -34,8 +34,15 @@ export async function fetchWithErrorHandlers(
     const response = await fetch(input, init);
 
     if (!response.ok) {
-      const { code, cause } = await response.json();
-      throw new ChatSDKError(code as ErrorCode, cause);
+      try {
+        const errorData = await response.json();
+        const { code, cause } = errorData;
+        throw new ChatSDKError(code as ErrorCode, cause);
+      } catch (parseError) {
+        // 如果无法解析错误响应，创建一个通用的错误
+        console.error("Failed to parse error response:", parseError);
+        throw new ChatSDKError("bad_request:api", `HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
     return response;
